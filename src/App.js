@@ -1,8 +1,12 @@
-import React, { useState } from "react";
-import { printFcmToken } from "./fcm";
+import React, { useEffect, useState } from "react";
+import { printFcmToken, listenForegroundMessages } from "./fcm";
 
 export default function FcmButton() {
   const [token, setToken] = useState("");
+
+  useEffect(() => {
+    listenForegroundMessages();
+  }, []);
 
   const handleGetToken = async () => {
     const t = await printFcmToken();
@@ -11,24 +15,19 @@ export default function FcmButton() {
 
   const handleCopy = async () => {
     if (!token) return;
-
     await navigator.clipboard.writeText(token);
     alert("✅ Token copied!");
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <button onClick={handleGetToken}>
-        Get FCM Token
-      </button>
+      <button onClick={handleGetToken}>Get FCM Token</button>
 
       {token && (
         <div style={{ marginTop: 20 }}>
           <p style={{ wordBreak: "break-all" }}>{token}</p>
 
-          <button onClick={handleCopy}>
-            Copy Token
-          </button>
+          <button onClick={handleCopy}>Copy Token</button>
         </div>
       )}
     </div>
