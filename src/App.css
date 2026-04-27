@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+    font-family: Tajawal, sans-serif !important;
+    direction: rtl;
+}
+.car-wrapper {
+  position: relative;
+}
+
+.car-overlay {
+  position: absolute;
+  inset: 0;
+  background: red;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
