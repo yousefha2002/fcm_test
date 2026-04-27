@@ -1,16 +1,36 @@
-import { useEffect } from "react";
+import React, { useState } from "react";
 import { printFcmToken } from "./fcm";
 
-export default function App() {
-  useEffect(() => {
-    printFcmToken();
-  }, []);
+export default function FcmButton() {
+  const [token, setToken] = useState("");
 
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    }
-  }, []);
+  const handleGetToken = async () => {
+    const t = await printFcmToken();
+    if (t) setToken(t);
+  };
 
-  return <h1>FCM Test</h1>;
+  const handleCopy = async () => {
+    if (!token) return;
+
+    await navigator.clipboard.writeText(token);
+    alert("✅ Token copied!");
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <button onClick={handleGetToken}>
+        Get FCM Token
+      </button>
+
+      {token && (
+        <div style={{ marginTop: 20 }}>
+          <p style={{ wordBreak: "break-all" }}>{token}</p>
+
+          <button onClick={handleCopy}>
+            Copy Token
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
