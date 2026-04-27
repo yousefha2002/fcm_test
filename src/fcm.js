@@ -3,39 +3,29 @@ import { messaging } from "./firebase";
 
 export const printFcmToken = async () => {
   try {
-    console.log("🔍 Checking permission...");
     const permission = await Notification.requestPermission();
-    console.log("🔔 Permission:", permission);
 
-    if (permission !== "granted") {
-      console.log("❌ Permission denied");
-      return null;
-    }
+    if (permission !== "granted") return null;
 
-    // 🔥 IMPORTANT: ensure SW is registered
-    if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
-      );
+    // ✅ 1. register SW مرة واحدة
+    const registration = await navigator.serviceWorker.getRegistration("/firebase-messaging-sw.js")
+    || await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
-      console.log("📦 Service Worker registered:", reg);
-    }
+    // ✅ 2. انتظر جاهزية SW
+    await navigator.serviceWorker.ready;
 
-    // 🔍 debug existing SWs
-    const regs = await navigator.serviceWorker.getRegistrations();
-    console.log("🧩 All Service Workers:", regs);
-
+    // ✅ 3. اربط SW مع getToken (مهم جدًا)
     const token = await getToken(messaging, {
       vapidKey:
         "BKE3t8pmI3ehjmTfITQXI2MV7HMa3bmE5RZW6IXSjhnarRNtFlJGppbuLWbchtB3xtOpcpnY6n6gPFFM7foLA-A",
-      forceRefresh: true, // 🔥 مهم جدًا
+      serviceWorkerRegistration: registration,
     });
 
-    console.log("🔥 FCM TOKEN:", token);
+    console.log("🔥 TOKEN:", token);
 
     return token;
   } catch (err) {
-    console.error("❌ FCM Error:", err);
+    console.error("FCM ERROR:", err);
     return null;
   }
 };
