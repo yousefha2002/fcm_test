@@ -7,25 +7,31 @@ export const printFcmToken = async () => {
 
     if (permission !== "granted") return null;
 
-    // ✅ 1. register SW مرة واحدة
-    const registration = await navigator.serviceWorker.getRegistration("/firebase-messaging-sw.js")
-    || await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    // 🔥 تأكد SW واحد فقط
+    let registration = await navigator.serviceWorker.getRegistration(
+      "/firebase-messaging-sw.js"
+    );
 
-    // ✅ 2. انتظر جاهزية SW
+    if (!registration) {
+      registration = await navigator.serviceWorker.register(
+        "/firebase-messaging-sw.js"
+      );
+    }
+
     await navigator.serviceWorker.ready;
 
-    // ✅ 3. اربط SW مع getToken (مهم جدًا)
+    // 🔥 مهم جدًا: انتظار استقرار SW
+    await new Promise((r) => setTimeout(r, 1000));
+
     const token = await getToken(messaging, {
       vapidKey:
         "BKE3t8pmI3ehjmTfITQXI2MV7HMa3bmE5RZW6IXSjhnarRNtFlJGppbuLWbchtB3xtOpcpnY6n6gPFFM7foLA-A",
       serviceWorkerRegistration: registration,
     });
 
-    console.log("🔥 TOKEN:", token);
-
     return token;
   } catch (err) {
-    console.error("FCM ERROR:", err);
+    console.error(err);
     return null;
   }
 };
