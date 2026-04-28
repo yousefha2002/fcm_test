@@ -1,5 +1,5 @@
 /* eslint-env serviceworker */
-/* global importScripts, firebase, clients */
+/* global importScripts, firebase */
 /* eslint-disable no-restricted-globals */
 
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
@@ -16,44 +16,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 🔥 background notification
+// 🔥 Background notifications
 messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || "New Notification";
 
   self.registration.showNotification(title, {
     body: payload.notification?.body || "",
     icon: "/firebase-logo.png",
-    badge: "/firebase-logo.png",
     data: payload.data || {},
   });
-});
-
-// 🔥 click handler
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
-  const url = event.notification.data?.click_action || "/";
-
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      for (const client of list) {
-        if (client.url === url && "focus" in client) {
-          return client.focus();
-        }
-      }
-      return clients.openWindow(url);
-    })
-  );
-});
-
-// 🔥 clean activation
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      await clients.claim();
-
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-    })()
-  );
 });

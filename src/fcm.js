@@ -4,23 +4,7 @@ import { initMessaging } from "./firebase";
 const VAPID_KEY =
   "BKE3t8pmI3ehjmTfITQXI2MV7HMa3bmE5RZW6IXSjhnarRNtFlJGppbuLWbchtB3xtOpcpnY6n6gPFFM7foLA-A";
 
-// 🔥 register ONLY ONE service worker
-const registerSW = async () => {
-  let registration = await navigator.serviceWorker.getRegistration(
-    "/firebase-messaging-sw.js"
-  );
-
-  if (!registration) {
-    registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js",
-      { scope: "/" }
-    );
-  }
-
-  return registration;
-};
-
-// 🔥 GET TOKEN
+// 🔥 GET FCM TOKEN (Firebase handles SW automatically)
 export const printFcmToken = async () => {
   try {
     const messaging = await initMessaging();
@@ -29,11 +13,8 @@ export const printFcmToken = async () => {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return null;
 
-    const registration = await registerSW();
-
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: registration,
     });
 
     console.log("🔥 FCM Token:", token);
@@ -50,17 +31,17 @@ export const listenForegroundMessages = async () => {
   const messaging = await initMessaging();
   if (!messaging) return;
 
-  onMessage(messaging, async (payload) => {
+  onMessage(messaging, (payload) => {
+    console.log("📩 Foreground message:", payload);
+
     const title = payload.notification?.title || "New Notification";
     const body = payload.notification?.body || "";
 
-    const registration = await navigator.serviceWorker.ready;
-
-    registration.showNotification(title, {
-      body,
-      icon: "/firebase-logo.png",
-      badge: "/firebase-logo.png",
-      data: payload.data || {},
-    });
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body,
+        icon: "/firebase-logo.png",
+      });
+    }
   });
 };
