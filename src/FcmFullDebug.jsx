@@ -14,10 +14,20 @@ export default function FcmFullDebug() {
       "/firebase-messaging-sw.js"
     );
 
+    // 🔥 NEW: detailed SW info
+    const swDetails = await Promise.all(
+      registrations.map(async (r) => ({
+        scope: r.scope,
+        scriptURL: r.active?.scriptURL,
+      }))
+    );
+
     // 3. check SW file exists
     let swFileStatus = "unknown";
     try {
-      const res = await fetch("/firebase-messaging-sw.js", { cache: "no-store" });
+      const res = await fetch("/firebase-messaging-sw.js", {
+        cache: "no-store",
+      });
       swFileStatus = res.status;
     } catch (e) {
       swFileStatus = "error";
@@ -29,10 +39,8 @@ export default function FcmFullDebug() {
     // 5. origin
     const origin = window.location.origin;
 
-    // 6. notification support
+    // 6. capabilities
     const notificationSupport = "Notification" in window;
-
-    // 7. service worker support
     const swSupport = "serviceWorker" in navigator;
 
     setData({
@@ -44,6 +52,9 @@ export default function FcmFullDebug() {
       userAgent,
       notificationSupport,
       swSupport,
+
+      // 🔥 ADD THIS
+      swDetails,
     });
   };
 
@@ -52,7 +63,14 @@ export default function FcmFullDebug() {
   }, []);
 
   return (
-    <div style={{ padding: 20, fontFamily: "monospace", background: "#111", color: "#0f0" }}>
+    <div
+      style={{
+        padding: 20,
+        fontFamily: "monospace",
+        background: "#111",
+        color: "#0f0",
+      }}
+    >
       <h2>🔥 FCM Debug Panel</h2>
 
       <button onClick={checkAll} style={{ marginBottom: 20 }}>
@@ -71,7 +89,8 @@ export default function FcmFullDebug() {
         <li>permission = must be "granted"</li>
         <li>swRegistered = true لازم</li>
         <li>swFileStatus = 200 لازم</li>
-        <li>swCount = لازم ≥ 1</li>
+        <li>swCount = ≥ 1</li>
+        <li>swDetails = shows duplicate service workers</li>
       </ul>
     </div>
   );
