@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { printFcmToken, listenForegroundMessages } from "./fcm";
-import FcmFullDebug from "../FcmFullDebug";
+import FcmFullDebug from "./FcmFullDebug";
 
 export default function FcmButton() {
   const [token, setToken] = useState("");
