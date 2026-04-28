@@ -1,13 +1,18 @@
 import { getToken, onMessage } from "firebase/messaging";
-import { messaging } from "./firebase";
+import { initMessaging } from "./firebase";
 
+const VAPID_KEY =
+  "BKE3t8pmI3ehjmTfITQXI2MV7HMa3bmE5RZW6IXSjhnarRNtFlJGppbuLWbchtB3xtOpcpnY6n6gPFFM7foLA-A";
+
+// 🔹 get FCM token
 export const printFcmToken = async () => {
   try {
-    const permission = await Notification.requestPermission();
+    const messaging = await initMessaging();
+    if (!messaging) return null;
 
+    const permission = await Notification.requestPermission();
     if (permission !== "granted") return null;
 
-    // 🔥 تأكد SW واحد فقط
     let registration = await navigator.serviceWorker.getRegistration(
       "/firebase-messaging-sw.js"
     );
@@ -20,14 +25,12 @@ export const printFcmToken = async () => {
 
     await navigator.serviceWorker.ready;
 
-    // 🔥 مهم جدًا: انتظار استقرار SW
-    await new Promise((r) => setTimeout(r, 1000));
-
     const token = await getToken(messaging, {
-      vapidKey:
-        "BKE3t8pmI3ehjmTfITQXI2MV7HMa3bmE5RZW6IXSjhnarRNtFlJGppbuLWbchtB3xtOpcpnY6n6gPFFM7foLA-A",
+      vapidKey: VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
+
+    console.log("FCM Token:", token);
 
     return token;
   } catch (err) {
@@ -36,19 +39,24 @@ export const printFcmToken = async () => {
   }
 };
 
-// 🔥 Foreground messages (مهم جدًا)
-export const listenForegroundMessages = () => {
-  onMessage(messaging, (payload) => {
-    console.log("📩 Foreground message:", payload);
+// 🔹 foreground listener
+export const listenForegroundMessages = async () => {
+  const messaging = await initMessaging();
+  if (!messaging) return;
+
+  onMessage(messaging, async (payload) => {
+    console.log("Foreground message:", payload);
 
     const title = payload.notification?.title || "New Notification";
     const body = payload.notification?.body || "";
 
-    if (Notification.permission === "granted") {
-      new Notification(title, {
-        body,
-        icon: "/firebase-logo.png",
-      });
-    }
+    const registration = await navigator.serviceWorker.ready;
+
+    registration.showNotification(title, {
+      body,
+      icon: "/firebase-logo.png",
+      badge: "/firebase-logo.png",
+      data: payload.data || {},
+    });
   });
 };

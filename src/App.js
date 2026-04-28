@@ -15,8 +15,9 @@ export default function FcmButton() {
 
   const handleCopy = async () => {
     if (!token) return;
+
     await navigator.clipboard.writeText(token);
-    alert("✅ Token copied!");
+    alert("Token copied!");
   };
 
   return (
@@ -26,7 +27,6 @@ export default function FcmButton() {
       {token && (
         <div style={{ marginTop: 20 }}>
           <p style={{ wordBreak: "break-all" }}>{token}</p>
-
           <button onClick={handleCopy}>Copy Token</button>
         </div>
       )}
